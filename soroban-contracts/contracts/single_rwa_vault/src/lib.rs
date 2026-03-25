@@ -101,6 +101,7 @@ impl SingleRWAVault {
         put_redemption_counter(e, 0u32);
         put_total_supply(e, 0i128);
         put_transfer_requires_kyc(e, true);
+        put_total_deposited(e, 0i128);
 
         e.storage()
             .instance()
@@ -216,6 +217,7 @@ impl SingleRWAVault {
         // --- Effects (state changes first) ---
         update_user_snapshot(e, &receiver);
         put_user_deposited(e, &receiver, get_user_deposited(e, &receiver) + assets);
+        put_total_deposited(e, get_total_deposited(e) + assets);
         _mint(e, &receiver, shares);
 
         // --- Interaction (external call last) ---
@@ -257,6 +259,7 @@ impl SingleRWAVault {
         // --- Effects (state changes first) ---
         update_user_snapshot(e, &receiver);
         put_user_deposited(e, &receiver, get_user_deposited(e, &receiver) + assets);
+        put_total_deposited(e, get_total_deposited(e) + assets);
         _mint(e, &receiver, shares);
 
         // --- Interaction (external call last) ---
@@ -303,6 +306,7 @@ impl SingleRWAVault {
         // --- Effects ---
         update_user_snapshot(e, &owner);
         _burn(e, &owner, shares);
+        put_total_deposited(e, get_total_deposited(e) - assets);
 
         // --- Interaction ---
         transfer_asset_from_vault(e, &receiver, assets);
@@ -348,6 +352,7 @@ impl SingleRWAVault {
         update_user_snapshot(e, &owner);
         let assets = preview_redeem(e, shares);
         _burn(e, &owner, shares);
+        put_total_deposited(e, get_total_deposited(e) - assets);
 
         // --- Interaction ---
         transfer_asset_from_vault(e, &receiver, assets);
@@ -820,6 +825,7 @@ impl SingleRWAVault {
         update_user_snapshot(e, &owner);
         let assets = preview_redeem(e, shares);
         _burn(e, &owner, shares);
+        put_total_deposited(e, get_total_deposited(e) - assets);
 
         let mut total_out = assets;
         if pending > 0 {
@@ -911,6 +917,7 @@ impl SingleRWAVault {
         let fee_bps = get_early_redemption_fee_bps(e) as i128;
         let fee = (assets * fee_bps) / 10000;
         let net_assets = assets - fee;
+        put_total_deposited(e, get_total_deposited(e) - net_assets);
 
         // --- Interaction ---
         transfer_asset_from_vault(e, &req.user, net_assets);
@@ -1275,7 +1282,7 @@ impl SingleRWAVault {
 // ─────────────────────────────────────────────────────────────────────────────
 
 fn total_assets(e: &Env) -> i128 {
-    asset_balance_of_vault(e)
+    get_total_deposited(e)
 }
 
 fn preview_deposit(e: &Env, assets: i128) -> i128 {
