@@ -45,6 +45,8 @@ pub enum Error {
     InvalidInitParams = 26,
     /// Vault cannot be closed because it still contains shares/assets.
     VaultNotEmpty = 27,
-    /// Deposit limit values are invalid (negative, or min > max).
-    InvalidDepositLimits = 28,
+    /// Vault is not in Emergency state.
+    NotInEmergency = 28,
+    /// User has already claimed their emergency distribution.
+    AlreadyClaimedEmergency = 29,
 }
